@@ -12,9 +12,10 @@ func _process(delta):
 	pass
 
 func init_window():
-	get_tree().root.get_viewport().set_size(screen_size)
-	get_tree().root.get_viewport().set_content_scale_mode(1) 	# stretch_mode = canvas_items
-	get_tree().root.get_viewport().set_content_scale_aspect(1) 	# stretch_aspect = keep
+	get_tree().root.content_scale_size = screen_size
+	get_tree().root.content_scale_mode = 2 	# stretch_mode = canvas_items
+	get_tree().root.content_scale_aspect = 1 	# stretch_aspect = keep
+	get_tree().root.content_scale_stretch = 1  # stretch_mode = integer 
 
 func init_inputs():
 	var mouse_left_click = InputEventMouseButton.new()
