@@ -17,7 +17,12 @@ func init_window():
 	get_tree().root.get_viewport().set_content_scale_aspect(1) 	# stretch_aspect = keep
 
 func init_inputs():
-	var mouse_button = InputEventMouseButton.new()
-	mouse_button.button_index = 1
+	var mouse_left_click = InputEventMouseButton.new()
+	mouse_left_click.button_index = 1
 	InputMap.add_action("mouse_left_click")
-	InputMap.action_add_event("mouse_left_click", mouse_button)
+	InputMap.action_add_event("mouse_left_click", mouse_left_click)
+	
+	var key_w = InputEventKey.new()
+	key_w.key_label = KEY_W
+	InputMap.add_action("key_w")
+	InputMap.action_add_event("key_w", key_w)
