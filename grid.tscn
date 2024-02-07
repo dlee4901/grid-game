@@ -1,8 +1,0 @@
-[gd_scene load_steps=2 format=3 uid="uid://b5iechvgmcuhk"]
-
-[ext_resource type="Script" path="res://grid.gd" id="1_0kn2j"]
-
-[node name="Grid" type="Node2D"]
-script = ExtResource("1_0kn2j")
-max_x = 10
-max_y = 10

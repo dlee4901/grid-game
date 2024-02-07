@@ -1,10 +1,10 @@
 extends Node2D
 
-const GameMode = preload("res://game_mode.gd")
-const GameState = preload("res://game_state.gd")
+const GameMode = preload("res://scripts/game_mode.gd")
+const GameState = preload("res://scripts/game_state.gd")
 
-const Camera = preload("res://camera.tscn")
-const Grid = preload("res://grid.tscn")
+const Camera = preload("res://scenes/camera.tscn")
+const Grid = preload("res://scenes/grid.tscn")
 
 var game_mode
 var game_state

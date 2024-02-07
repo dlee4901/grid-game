@@ -1,7 +1,7 @@
 extends Node2D
 
-const Tile = preload("res://tile.tscn")
-const Unit = preload("res://units/unit.tscn")
+const Tile = preload("res://scenes/tile.tscn")
+const Unit = preload("res://scenes/unit.tscn")
 
 @export var max_x: int
 @export var max_y: int

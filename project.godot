@@ -11,14 +11,13 @@ config_version=5
 [application]
 
 config/name="Grid"
-run/main_scene="res://main.tscn"
+run/main_scene="res://scenes/main.tscn"
 config/features=PackedStringArray("4.2", "Forward Plus")
-config/icon="res://icon.svg"
 
 [autoload]
 
-Settings="*res://autoload/settings.gd"
-Util="*res://autoload/util.gd"
+Settings="*res://scripts/autoload/settings.gd"
+Util="*res://scripts/autoload/util.gd"
 
 [display]
 
