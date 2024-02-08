@@ -5,9 +5,13 @@ class_name GridIdle
 
 func enter():
 	grid.reset_all_tiles()
+	print("idle")
 	
 func exit():
 	pass
 
 func update(delta):
 	pass
+
+func _on_tile_selected(grid_position):
+	print(grid_position)

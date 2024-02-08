@@ -4,6 +4,8 @@ class_name Grid
 var tile_scene = preload("res://scenes/tile.tscn")
 var unit_scene = preload("res://scenes/unit.tscn")
 
+@onready var state_machine = $StateMachine
+
 @export var max_x: int
 @export var max_y: int
 
@@ -14,7 +16,6 @@ var units: Array[Unit]
 var terrain: Array[Terrain]
 var selected_position: Vector2i
 
-
 # Called when the node enters the scene tree for the first time.
 func _ready():
 	tiles.resize(max_x * max_y)
@@ -23,15 +24,15 @@ func _ready():
 	selected_position = Vector2i(0, 0)
 	init_tiles()
 	generate_units()
-	
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.
 func _process(delta):
 	pass
 
-func _on_tile_selected(grid_position):
+func _on_tile_selected(grid_position: Vector2i):
 	var positions: Array[Vector2i]
 	var unit = get_unit(grid_position)
+	print(unit)
 	if not selected_position:
 		if unit != null:
 			positions = get_traversable_positions(grid_position)
@@ -51,7 +52,7 @@ func get_tile(position: Vector2i) -> Tile:
 func get_unit(position: Vector2i) -> Unit:
 	return units[flatten(position)]
 
-func set_tile_position(tile, position: Vector2i, terrain_type=Terrain.DEFAULT):
+func set_tile_position(tile: Tile, position: Vector2i, terrain_type=Terrain.DEFAULT):
 	if not is_legal_position(position):
 		return
 	tiles[flatten(position)] = tile
@@ -63,8 +64,9 @@ func update_unit_position(src: Vector2i, dst: Vector2i):
 	var unit = get_unit(src)
 	if unit == null:
 		return
-	set_unit_position(unit, dst)
 	delete_unit_position(src)
+	set_unit_position(unit, dst)
+	
 
 func set_unit_position(unit: Unit, position: Vector2i):
 	if not is_legal_position(position):
@@ -89,7 +91,7 @@ func init_tiles():
 func flatten(vector: Vector2i) -> int:
 	return (vector.y - 1) * max_x + vector.x - 1
 
-func unflatten(i) -> Vector2i:
+func unflatten(i: int) -> Vector2i:
 	return Vector2i(i % max_x + 1, i / max_x + 1)
 
 func reset_all_tiles():
@@ -128,8 +130,8 @@ func get_traversable_positions(position: Vector2i) -> Array[Vector2i]:
 	return valid_positions
 
 func get_valid_positions(initial_position: Vector2i, xy_directions: Array[Vector2i], distance=1) -> Array[Vector2i]:
-	var unique_positions = {initial_position:null}
-	var valid_positions = [initial_position]
+	var unique_positions = {}
+	var valid_positions = []
 	if distance == -1:
 		distance = max(max_x, max_y)
 	for i in distance:
@@ -138,9 +140,9 @@ func get_valid_positions(initial_position: Vector2i, xy_directions: Array[Vector
 		for j in xy_directions.size():
 			var start_position = initial_position
 			if i > 0: 
-				start_position = valid_positions[xy_directions.size() * (i - 1) + (j + 1)]
+				start_position = valid_positions[xy_directions.size() * (i - 1) + j]
 			var target_position = start_position + xy_directions[j]
-			if is_legal_position(target_position) and not is_blocked(get_unit(initial_position),  target_position) and not unique_positions.has(target_position):
+			if is_legal_position(target_position) and not is_blocked(get_unit(initial_position), target_position) and not unique_positions.has(target_position):
 				valid_positions.append(target_position)
 				unique_positions[target_position] = null
 			else:
@@ -220,10 +222,11 @@ func get_absolute_directions(unit: Unit) -> Array[bool]:
 		return directions.slice(shift) + directions.slice(0, shift)
 	return directions
 
-func is_blocked(unit, position) -> bool:
+func is_blocked(unit: Unit, position: Vector2i) -> bool:
 	if get_unit(position):
+		print(position)
 		return true
 	return false
 
-func is_legal_position(position) -> bool:
+func is_legal_position(position: Vector2i) -> bool:
 	return position.x > 0 and position.y > 0 and position.x <= max_x and position.y <= max_y

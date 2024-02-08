@@ -1,8 +1,10 @@
 extends State
 class_name GridSelectingMove
 
+@export var grid: Grid
+
 func enter():
-	pass
+	print("selecting")
 	
 func exit():
 	pass

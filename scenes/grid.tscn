@@ -10,11 +10,14 @@ script = ExtResource("1_65r8e")
 max_x = 10
 max_y = 10
 
-[node name="StateMachine" type="Node" parent="."]
+[node name="StateMachine" type="Node" parent="." node_paths=PackedStringArray("initial_state")]
 script = ExtResource("2_ollib")
+initial_state = NodePath("GridIdle")
 
-[node name="GridIdle" type="Node" parent="StateMachine"]
+[node name="GridIdle" type="Node" parent="StateMachine" node_paths=PackedStringArray("grid")]
 script = ExtResource("3_q64ac")
+grid = NodePath("../..")
 
-[node name="GridSelectingMove" type="Node" parent="StateMachine"]
+[node name="GridSelectingMove" type="Node" parent="StateMachine" node_paths=PackedStringArray("grid")]
 script = ExtResource("4_ud3vo")
+grid = NodePath("../..")
