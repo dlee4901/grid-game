@@ -1,8 +1,5 @@
 extends Node
 
-enum Facing {N, E, S, W}
-enum Direction {stride, step, line, diagonal, straight, horizontal, vertical, N, NE, E, SE, S, SW, W, NW}
-
 func load_tree_object(tree, object):
 	var child = object.new()
 	tree.add_child(child)

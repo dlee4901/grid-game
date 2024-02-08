@@ -1,0 +1,8 @@
+[gd_scene load_steps=2 format=3 uid="uid://dnlkurfci7y1h"]
+
+[ext_resource type="Script" path="res://scripts/unit.gd" id="1_phe7y"]
+
+[node name="Unit" type="Node2D"]
+z_as_relative = false
+scale = Vector2(0.125, 0.125)
+script = ExtResource("1_phe7y")

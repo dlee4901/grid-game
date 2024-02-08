@@ -1,0 +1,17 @@
+[gd_scene load_steps=4 format=3 uid="uid://bo44esq5rm4je"]
+
+[ext_resource type="Script" path="res://scripts/unit.gd" id="1_tm2vb"]
+[ext_resource type="Texture2D" uid="uid://cqxvni8jup7gw" path="res://assets/circle-black.png" id="2_84dy2"]
+[ext_resource type="Script" path="res://scripts/move.gd" id="3_ybfpc"]
+
+[node name="Rook" type="Node2D"]
+script = ExtResource("1_tm2vb")
+title = "Rook"
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+texture = ExtResource("2_84dy2")
+
+[node name="Move" type="Node" parent="."]
+script = ExtResource("3_ybfpc")
+direction = 4
+distance = -1

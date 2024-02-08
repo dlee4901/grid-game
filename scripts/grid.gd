@@ -2,9 +2,7 @@ extends Node2D
 class_name Grid
 
 var tile_scene = preload("res://scenes/tile.tscn")
-var unit_scene = preload("res://scenes/unit.tscn")
-
-@onready var state_machine = $StateMachine
+var unit_scene = preload("res://scenes/units/unit.tscn")
 
 @export var max_x: int
 @export var max_y: int
@@ -23,7 +21,7 @@ func _ready():
 	terrain.resize(max_x * max_y)
 	selected_position = Vector2i(0, 0)
 	init_tiles()
-	generate_units()
+	place_units()
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.
 func _process(delta):
@@ -32,7 +30,6 @@ func _process(delta):
 func _on_tile_selected(grid_position: Vector2i):
 	var positions: Array[Vector2i]
 	var unit = get_unit(grid_position)
-	print(unit)
 	if not selected_position:
 		if unit != null:
 			positions = get_traversable_positions(grid_position)
@@ -45,6 +42,12 @@ func _on_tile_selected(grid_position: Vector2i):
 			update_unit_position(selected_position, grid_position)
 		selected_position = Vector2i(0, 0)
 		reset_all_tiles()
+
+func place_units():
+	for child in get_children():
+		if child is Unit:
+			set_unit_position(child, child.grid_position)
+			child.z_as_relative = false
 
 func get_tile(position: Vector2i) -> Tile:
 	return tiles[flatten(position)]
@@ -66,7 +69,6 @@ func update_unit_position(src: Vector2i, dst: Vector2i):
 		return
 	delete_unit_position(src)
 	set_unit_position(unit, dst)
-	
 
 func set_unit_position(unit: Unit, position: Vector2i):
 	if not is_legal_position(position):
@@ -102,23 +104,6 @@ func set_tiles_traversable(positions: Array[Vector2i]):
 	for i in positions:
 		get_tile(i).set_traversable(true)
 
-func generate_units():
-	var unit_rook = Util.load_tree_scene(self, unit_scene)
-	unit_rook.init("rook", Util.Direction.straight, -1, false, false)
-	unit_rook.load_sprite("res://assets/circle-red.png")
-	
-	var unit_bishop = Util.load_tree_scene(self, unit_scene)
-	unit_bishop.init("bishop", Util.Direction.diagonal, -1, false, false)
-	unit_bishop.load_sprite("res://assets/circle-blue.png")
-	
-	var unit_queen = Util.load_tree_scene(self, unit_scene)
-	unit_queen.init("queen", Util.Direction.line, -1, false, false)
-	unit_queen.load_sprite("res://assets/circle-black.png")
-	
-	set_unit_position(unit_rook, Vector2i(1, 1))
-	set_unit_position(unit_bishop, Vector2i(2, 2))
-	set_unit_position(unit_queen, Vector2i(5, 6))
-
 func get_traversable_positions(position: Vector2i) -> Array[Vector2i]:
 	var traversal_positions: Array[Vector2i]
 	var unit = get_unit(position)
@@ -126,12 +111,33 @@ func get_traversable_positions(position: Vector2i) -> Array[Vector2i]:
 		return traversal_positions
 	var absolute_directions = get_absolute_directions(get_unit(position))
 	var xy_directions = get_xy_directions(absolute_directions)
-	var valid_positions = get_valid_positions(position, xy_directions, unit.move_distance)
+	var valid_positions: Array[Vector2i]
+	if unit.move.direction == Move.Direction.step or unit.move.direction == Move.Direction.stride:
+		valid_positions = get_valid_positions_step(position, xy_directions, unit)
+	else:
+		valid_positions = get_valid_positions(position, xy_directions, unit)
 	return valid_positions
 
-func get_valid_positions(initial_position: Vector2i, xy_directions: Array[Vector2i], distance=1) -> Array[Vector2i]:
+func get_valid_positions_step(initial_position: Vector2i, xy_directions: Array[Vector2i], unit: Unit) -> Array[Vector2i]:
+	var unique_positions = {initial_position: null}
+	var valid_positions: Array[Vector2i]
+	var distance = unit.move.distance
+	if distance == -1:
+		distance = max(max_x, max_y)
+	for i in distance+1:
+		for j in valid_positions:
+			for k in xy_directions:
+				var target_position = j + k
+				if is_legal_position(target_position) and not is_blocked(get_unit(initial_position), target_position) and not unique_positions.has(target_position):
+					unique_positions[target_position] = null
+		valid_positions.assign(unique_positions.keys())
+	valid_positions.erase(initial_position)
+	return valid_positions
+
+func get_valid_positions(initial_position: Vector2i, xy_directions: Array[Vector2i], unit: Unit) -> Array[Vector2i]:
 	var unique_positions = {}
-	var valid_positions = []
+	var valid_positions: Array[Vector2i]
+	var distance = unit.move.distance
 	if distance == -1:
 		distance = max(max_x, max_y)
 	for i in distance:
@@ -147,9 +153,8 @@ func get_valid_positions(initial_position: Vector2i, xy_directions: Array[Vector
 				unique_positions[target_position] = null
 			else:
 				valid_positions.append(start_position)
-	var unique_valid_positions : Array[Vector2i]
-	unique_valid_positions.assign(unique_positions.keys())
-	return unique_valid_positions
+	valid_positions.assign(unique_positions.keys())
+	return valid_positions
 
 func get_xy_directions(absolute_directions: Array[bool]) -> Array[Vector2i]:
 	var xy_directions: Array[Vector2i]
@@ -170,52 +175,52 @@ func get_xy_directions(absolute_directions: Array[bool]) -> Array[Vector2i]:
 
 func get_absolute_directions(unit: Unit) -> Array[bool]:
 	var directions : Array[bool] = [false, false, false, false, false, false, false, false]
-	match unit.move_direction:
-		Util.Direction.stride, Util.Direction.line:
+	match unit.move.direction:
+		Move.Direction.stride, Move.Direction.line:
 			for i in range(0, 8):
 				directions[i] = true
-		Util.Direction.diagonal:
+		Move.Direction.diagonal:
 			for i in range(0, 8):
 				if i % 2 == 1:
 					directions[i] = true
-		Util.Direction.step, Util.Direction.straight:
+		Move.Direction.step, Move.Direction.straight:
 			for i in range(0, 8):
 				if i % 2 == 0:
 					directions[i] = true
-		Util.Direction.horizontal:
+		Move.Direction.horizontal:
 			directions[2] = true;
 			directions[6] = true;
-		Util.Direction.vertical:
+		Move.Direction.vertical:
 			directions[0] = true;
 			directions[4] = true;
-		Util.Direction.N:
+		Move.Direction.N:
 			directions[0] = true;
-		Util.Direction.NE:
+		Move.Direction.NE:
 			directions[1] = true;
-		Util.Direction.E:
+		Move.Direction.E:
 			directions[2] = true;
-		Util.Direction.SE:
+		Move.Direction.SE:
 			directions[3] = true;
-		Util.Direction.S:
+		Move.Direction.S:
 			directions[4] = true;
-		Util.Direction.SW:
+		Move.Direction.SW:
 			directions[5] = true;
-		Util.Direction.W:
+		Move.Direction.W:
 			directions[6] = true;
-		Util.Direction.NW:
+		Move.Direction.NW:
 			directions[7] = true;
 		_:
 			print("grid::get_absolute_directions() - Invalid direction")
-	if unit.move_relative_facing:
+	if unit.move.relative_facing:
 		var shift = 0
 		match unit.facing:
-			Util.Facing.N:
+			Unit.Facing.N:
 				shift == 0
-			Util.Facing.E:
+			Unit.Facing.E:
 				shift == 6
-			Util.Facing.S:
+			Unit.Facing.S:
 				shift == 4
-			Util.Facing.W:
+			Unit.Facing.W:
 				shift == 2
 			_:
 				print("grid::get_absolute_directions() - Invalid facing")
@@ -224,7 +229,6 @@ func get_absolute_directions(unit: Unit) -> Array[bool]:
 
 func is_blocked(unit: Unit, position: Vector2i) -> bool:
 	if get_unit(position):
-		print(position)
 		return true
 	return false
 

@@ -1,10 +1,10 @@
 extends Node
+class_name Move
 
-var distance: int
-var exact: bool
-var direction: Util.Direction
-var move_chain
+enum Direction {step, stride, line, diagonal, straight, horizontal, vertical, N, NE, E, SE, S, SW, W, NW}
 
-# Called when the node enters the scene tree for the first time.
-func _ready():
-	pass # Replace with function body.
+@export var direction: Direction
+@export var distance: int
+@export var exact: bool
+@export var relative_facing: bool
+@export var move_chain: Move
