@@ -1,10 +1,11 @@
 extends Area2D
+class_name Tile
 
 @onready var sprite = $Sprite2D
 @onready var collision = $CollisionShape2D
-@onready var offset = Vector2i(collision.shape.size)
 
-@onready var grid_position = Vector2i(-1, -1)
+@onready var offset = Vector2i(collision.shape.size)
+@onready var grid_position = Vector2i(0, 0)
 
 var state = {"hovered": false, "traversable": false}
 
@@ -38,7 +39,6 @@ func highlight():
 		sprite.modulate.r = 1
 
 func reset_state():
-	state["hovered"] = false
 	state["traversable"] = false
 	sprite.set_modulate(Color(1, 1, 1, 1))
 	

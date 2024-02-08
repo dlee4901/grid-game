@@ -1,6 +1,9 @@
-[gd_scene load_steps=2 format=3 uid="uid://b5iechvgmcuhk"]
+[gd_scene load_steps=5 format=3 uid="uid://b5iechvgmcuhk"]
 
 [ext_resource type="Script" path="res://scripts/grid.gd" id="1_65r8e"]
+[ext_resource type="Script" path="res://scripts/states/state_machine.gd" id="2_ollib"]
+[ext_resource type="Script" path="res://scripts/states/grid/idle.gd" id="3_q64ac"]
+[ext_resource type="Script" path="res://scripts/states/grid/selecting_move.gd" id="4_ud3vo"]
 
 [node name="Grid" type="Node2D"]
 script = ExtResource("1_65r8e")
@@ -8,3 +11,10 @@ max_x = 10
 max_y = 10
 
 [node name="StateMachine" type="Node" parent="."]
+script = ExtResource("2_ollib")
+
+[node name="GridIdle" type="Node" parent="StateMachine"]
+script = ExtResource("3_q64ac")
+
+[node name="GridSelectingMove" type="Node" parent="StateMachine"]
+script = ExtResource("4_ud3vo")

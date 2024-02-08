@@ -1,4 +1,5 @@
 extends Node
+class_name StateMachine
 
 @export var initial_state: State
 
@@ -18,7 +19,7 @@ func _process(delta):
 	if current_state:
 		current_state.update(delta)
 
-func _on_state_transition(old, new):
+func _on_state_transition(old: State, new: State):
 	if old != current_state:
 		return
 	var new_state = states.get(new)

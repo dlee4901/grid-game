@@ -1,4 +1,5 @@
 extends Node2D
+class_name Unit
 
 @export var sprite: Sprite2D
 @export var title: String
