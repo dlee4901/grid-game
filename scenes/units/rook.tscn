@@ -2,7 +2,7 @@
 
 [ext_resource type="Script" path="res://scripts/unit.gd" id="1_tm2vb"]
 [ext_resource type="Texture2D" uid="uid://cqxvni8jup7gw" path="res://assets/circle-black.png" id="2_84dy2"]
-[ext_resource type="Script" path="res://scripts/move.gd" id="3_ybfpc"]
+[ext_resource type="Script" path="res://scripts/traversal.gd" id="3_bbfhu"]
 
 [node name="Rook" type="Node2D"]
 script = ExtResource("1_tm2vb")
@@ -12,6 +12,6 @@ title = "Rook"
 texture = ExtResource("2_84dy2")
 
 [node name="Move" type="Node" parent="."]
-script = ExtResource("3_ybfpc")
+script = ExtResource("3_bbfhu")
 direction = 4
 distance = -1

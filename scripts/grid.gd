@@ -12,7 +12,13 @@ enum Terrain {DEFAULT, ROCK, HOLE}
 var tiles: Array[Tile]
 var units: Array[Unit]
 var terrain: Array[Terrain]
+
+@onready var unit_gui = get_node("CanvasLayer").get_node("UnitGUI")
+#@onready var state_machine = $StateMachine
+var state_machine: StateMachine
+
 var selected_position: Vector2i
+var traversable_positions: Array[Vector2i]
 
 # Called when the node enters the scene tree for the first time.
 func _ready():
@@ -22,26 +28,38 @@ func _ready():
 	selected_position = Vector2i(0, 0)
 	init_tiles()
 	place_units()
+	print(unit_gui)
+	print("test1")
+	state_machine = get_node("StateMachine")
+	print("test2")
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.
 func _process(delta):
 	pass
 
 func _on_tile_selected(grid_position: Vector2i):
-	var positions: Array[Vector2i]
-	var unit = get_unit(grid_position)
-	if not selected_position:
-		if unit != null:
-			positions = get_traversable_positions(grid_position)
-			set_tiles_traversable(positions)
-			selected_position = grid_position
-		else:
-			reset_all_tiles()
+	selected_position = grid_position
+	if get_unit(selected_position): 
+		state_machine.current_state.unit_selected()
 	else:
-		if get_tile(grid_position).state["traversable"]:
-			update_unit_position(selected_position, grid_position)
-		selected_position = Vector2i(0, 0)
-		reset_all_tiles()
+		state_machine.current_state.tile_selected()
+	#var positions: Array[Vector2i]
+	#var unit = get_unit(grid_position)
+	#if not selected_position:
+		#if unit != null:
+			#positions = get_traversable_positions(grid_position)
+			#set_tiles_traversable(positions)
+			#selected_position = grid_position
+		#else:
+			#reset_all_tiles()
+	#else:
+		#if get_tile(grid_position).state["traversable"]:
+			#update_unit_position(selected_position, grid_position)
+		#selected_position = Vector2i(0, 0)
+		#reset_all_tiles()
+
+func _on_unit_gui_button_pressed(traversal):
+	state_machine.current_state.traversal_selected(traversal)
 
 func place_units():
 	for child in get_children():
@@ -104,24 +122,25 @@ func set_tiles_traversable(positions: Array[Vector2i]):
 	for i in positions:
 		get_tile(i).set_traversable(true)
 
-func get_traversable_positions(position: Vector2i) -> Array[Vector2i]:
+func get_traversable_positions(position: Vector2i, traversal: Traversal) -> Array[Vector2i]:
 	var traversal_positions: Array[Vector2i]
 	var unit = get_unit(position)
 	if not is_legal_position(position) or unit == null:
 		return traversal_positions
-	var absolute_directions = get_absolute_directions(get_unit(position))
+	var absolute_directions = get_absolute_directions(get_unit(position), traversal)
 	var xy_directions = get_xy_directions(absolute_directions)
 	var valid_positions: Array[Vector2i]
-	if unit.move.direction == Move.Direction.step or unit.move.direction == Move.Direction.stride:
-		valid_positions = get_valid_positions_step(position, xy_directions, unit)
+	if unit.traversal.direction == Traversal.Direction.step or unit.traversal.direction == Traversal.Direction.stride:
+		valid_positions = get_valid_positions_step(position, xy_directions, traversal)
 	else:
-		valid_positions = get_valid_positions(position, xy_directions, unit)
+		valid_positions = get_valid_positions(position, xy_directions, traversal)
+	set_tiles_traversable(valid_positions)
 	return valid_positions
 
-func get_valid_positions_step(initial_position: Vector2i, xy_directions: Array[Vector2i], unit: Unit) -> Array[Vector2i]:
+func get_valid_positions_step(initial_position: Vector2i, xy_directions: Array[Vector2i], traversal: Traversal) -> Array[Vector2i]:
 	var unique_positions = {initial_position: null}
 	var valid_positions: Array[Vector2i]
-	var distance = unit.move.distance
+	var distance = traversal.distance
 	if distance == -1:
 		distance = max(max_x, max_y)
 	for i in distance+1:
@@ -134,10 +153,10 @@ func get_valid_positions_step(initial_position: Vector2i, xy_directions: Array[V
 	valid_positions.erase(initial_position)
 	return valid_positions
 
-func get_valid_positions(initial_position: Vector2i, xy_directions: Array[Vector2i], unit: Unit) -> Array[Vector2i]:
+func get_valid_positions(initial_position: Vector2i, xy_directions: Array[Vector2i], traversal: Traversal) -> Array[Vector2i]:
 	var unique_positions = {}
 	var valid_positions: Array[Vector2i]
-	var distance = unit.move.distance
+	var distance = traversal.distance
 	if distance == -1:
 		distance = max(max_x, max_y)
 	for i in distance:
@@ -173,45 +192,45 @@ func get_xy_directions(absolute_directions: Array[bool]) -> Array[Vector2i]:
 		xy_directions.append(Vector2i(x, y))
 	return xy_directions
 
-func get_absolute_directions(unit: Unit) -> Array[bool]:
+func get_absolute_directions(unit: Unit, traversal: Traversal) -> Array[bool]:
 	var directions : Array[bool] = [false, false, false, false, false, false, false, false]
-	match unit.move.direction:
-		Move.Direction.stride, Move.Direction.line:
+	match traversal.direction:
+		Traversal.Direction.stride, Traversal.Direction.line:
 			for i in range(0, 8):
 				directions[i] = true
-		Move.Direction.diagonal:
+		Traversal.Direction.diagonal:
 			for i in range(0, 8):
 				if i % 2 == 1:
 					directions[i] = true
-		Move.Direction.step, Move.Direction.straight:
+		Traversal.Direction.step, Traversal.Direction.straight:
 			for i in range(0, 8):
 				if i % 2 == 0:
 					directions[i] = true
-		Move.Direction.horizontal:
+		Traversal.Direction.horizontal:
 			directions[2] = true;
 			directions[6] = true;
-		Move.Direction.vertical:
+		Traversal.Direction.vertical:
 			directions[0] = true;
 			directions[4] = true;
-		Move.Direction.N:
+		Traversal.Direction.N:
 			directions[0] = true;
-		Move.Direction.NE:
+		Traversal.Direction.NE:
 			directions[1] = true;
-		Move.Direction.E:
+		Traversal.Direction.E:
 			directions[2] = true;
-		Move.Direction.SE:
+		Traversal.Direction.SE:
 			directions[3] = true;
-		Move.Direction.S:
+		Traversal.Direction.S:
 			directions[4] = true;
-		Move.Direction.SW:
+		Traversal.Direction.SW:
 			directions[5] = true;
-		Move.Direction.W:
+		Traversal.Direction.W:
 			directions[6] = true;
-		Move.Direction.NW:
+		Traversal.Direction.NW:
 			directions[7] = true;
 		_:
 			print("grid::get_absolute_directions() - Invalid direction")
-	if unit.move.relative_facing:
+	if traversal.relative_facing:
 		var shift = 0
 		match unit.facing:
 			Unit.Facing.N:

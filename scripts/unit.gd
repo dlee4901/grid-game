@@ -8,11 +8,11 @@ class_name Unit
 @export var current_health: int
 @export var facing: Facing
 
-var move: Move
+var traversals: Array[Traversal]
 
 enum Facing {N, E, S, W}
 
 func _ready():
 	for child in get_children():
-		if child is Move:
-			move = child
+		if child is Traversal:
+			traversals.append(child)
