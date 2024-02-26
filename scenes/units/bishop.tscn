@@ -17,3 +17,8 @@ texture = ExtResource("2_rqooy")
 script = ExtResource("3_fe8nf")
 direction = 3
 distance = -1
+
+[node name="Move2" type="Node" parent="."]
+script = ExtResource("3_fe8nf")
+direction = 4
+distance = -1

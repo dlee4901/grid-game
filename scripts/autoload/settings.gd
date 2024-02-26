@@ -1,6 +1,6 @@
 extends Node
 
-var screen_size = Vector2i(1280, 720)
+var screen_size = Vector2i(1920, 1080)
 
 # Called when the node enters the scene tree for the first time.
 func _ready():
@@ -15,9 +15,10 @@ func _process(delta):
 # https://docs.godotengine.org/en/stable/classes/class_window.html#enum-window-contentscalemode
 func init_window():
 	get_tree().root.content_scale_size = screen_size
-	get_tree().root.content_scale_mode = 2 	# stretch_mode = viewport
-	get_tree().root.content_scale_aspect = 1 	# stretch_aspect = keep
-	get_tree().root.content_scale_stretch = 1  # stretch_mode = integer 
+	get_tree().root.content_scale_mode = 1     # disabled, canvas-items, viewport
+	get_tree().root.content_scale_aspect = 4   # ignore, keep, keep width, keep height, expand
+	get_tree().root.content_scale_stretch = 0  # fractional, integer
+	get_tree().get_root().set_min_size(screen_size)
 
 func init_inputs():
 	var mouse_left_click = InputEventMouseButton.new()

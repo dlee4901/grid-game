@@ -4,7 +4,7 @@
 [ext_resource type="Texture2D" uid="uid://dh2plwqj0nt4e" path="res://assets/tile.png" id="2_ipqgs"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_hxbpr"]
-size = Vector2(64, 64)
+size = Vector2(96, 96)
 
 [node name="Tile" type="Area2D"]
 script = ExtResource("1_knirw")
@@ -13,7 +13,6 @@ script = ExtResource("1_knirw")
 texture = ExtResource("2_ipqgs")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
-visible = false
 shape = SubResource("RectangleShape2D_hxbpr")
 
 [connection signal="mouse_entered" from="." to="." method="_on_mouse_entered"]

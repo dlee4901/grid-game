@@ -21,12 +21,7 @@ grid_position = Vector2i(1, 1)
 
 [node name="Bishop" parent="." instance=ExtResource("3_xdcsv")]
 
-[node name="CanvasLayer" type="CanvasLayer" parent="."]
-
-[node name="UnitGUI" type="VBoxContainer" parent="CanvasLayer"]
-offset_right = 40.0
-offset_bottom = 40.0
-script = ExtResource("7_eamlq")
+[node name="StateMachineHandler" type="Node2D" parent="."]
 
 [node name="StateMachine" type="Node" parent="." node_paths=PackedStringArray("initial_state")]
 script = ExtResource("2_ollib")
@@ -41,4 +36,11 @@ script = ExtResource("4_avfta")
 [node name="SelectingTraversal" type="Node" parent="StateMachine"]
 script = ExtResource("5_cc6l7")
 
-[connection signal="button_pressed" from="CanvasLayer/UnitGUI" to="." method="_on_unit_gui_button_pressed"]
+[node name="CanvasLayer" type="CanvasLayer" parent="."]
+
+[node name="UnitGui" type="VBoxContainer" parent="CanvasLayer"]
+offset_right = 40.0
+offset_bottom = 40.0
+script = ExtResource("7_eamlq")
+
+[connection signal="button_pressed" from="CanvasLayer/UnitGui" to="." method="_on_unit_gui_button_pressed"]

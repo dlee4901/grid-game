@@ -3,11 +3,10 @@ class_name SelectingUnit
 
 func enter():
 	ref.reset_all_tiles()
-	print(ref.unit_gui)
-	ref.unit_gui.hide()
+	ref.get_node("CanvasLayer").get_node("UnitGui").hide()
 
 func tile_selected():
 	enter()
 
 func unit_selected():
-	transition.emit(self, "SelectingGui")
+	transition.emit(self.name, "SelectingGui")

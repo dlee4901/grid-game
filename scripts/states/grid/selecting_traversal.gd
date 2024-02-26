@@ -1,21 +1,23 @@
 extends State
 class_name SelectingTraversal
 
-var unit: Unit
 var starting_position: Vector2i
 
 func enter():
-	unit = ref.get_unit(ref.selected_position)
 	starting_position = ref.selected_position
 
+func exit():
+	ref.reset_all_tiles()
+
 func tile_selected():
-	if ref.selected_position.state["traversable"]:
+	if ref.get_tile(ref.selected_position).state["traversable"]:
 		ref.update_unit_position(starting_position, ref.selected_position)
 		ref.selected_position = Vector2(0, 0)
-	transition.emit(self, "SelectingUnit")
+	transition.emit(self.name, "SelectingUnit")
 
 func unit_selected():
-	transition.emit(self, "SelectingGui")
+	transition.emit(self.name, "SelectingGui")
 
 func traversal_selected(traversal):
-	ref.trafersable_positions = ref.get_traversable_positions(unit, traversal)
+	ref.reset_all_tiles()
+	ref.traversable_positions = ref.get_traversable_positions(ref.selected_position, traversal)

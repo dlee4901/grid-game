@@ -7,18 +7,19 @@ var unit_scene = preload("res://scenes/units/unit.tscn")
 @export var max_x: int
 @export var max_y: int
 
+@onready var unit_gui = get_node("CanvasLayer").get_node("UnitGui")
+@onready var state_machine = get_node("StateMachine")
+
 enum Terrain {DEFAULT, ROCK, HOLE}
 
 var tiles: Array[Tile]
 var units: Array[Unit]
 var terrain: Array[Terrain]
 
-@onready var unit_gui = get_node("CanvasLayer").get_node("UnitGUI")
-#@onready var state_machine = $StateMachine
-var state_machine: StateMachine
-
 var selected_position: Vector2i
 var traversable_positions: Array[Vector2i]
+
+signal clear_selected
 
 # Called when the node enters the scene tree for the first time.
 func _ready():
@@ -26,12 +27,11 @@ func _ready():
 	units.resize(max_x * max_y)
 	terrain.resize(max_x * max_y)
 	selected_position = Vector2i(0, 0)
+	
 	init_tiles()
+	init_gui()
 	place_units()
-	print(unit_gui)
-	print("test1")
-	state_machine = get_node("StateMachine")
-	print("test2")
+	state_machine.init()
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.
 func _process(delta):
@@ -39,39 +39,38 @@ func _process(delta):
 
 func _on_tile_selected(grid_position: Vector2i):
 	selected_position = grid_position
-	if get_unit(selected_position): 
+	if get_unit(selected_position):
 		state_machine.current_state.unit_selected()
 	else:
 		state_machine.current_state.tile_selected()
-	#var positions: Array[Vector2i]
-	#var unit = get_unit(grid_position)
-	#if not selected_position:
-		#if unit != null:
-			#positions = get_traversable_positions(grid_position)
-			#set_tiles_traversable(positions)
-			#selected_position = grid_position
-		#else:
-			#reset_all_tiles()
-	#else:
-		#if get_tile(grid_position).state["traversable"]:
-			#update_unit_position(selected_position, grid_position)
-		#selected_position = Vector2i(0, 0)
-		#reset_all_tiles()
 
 func _on_unit_gui_button_pressed(traversal):
 	state_machine.current_state.traversal_selected(traversal)
-
-func place_units():
-	for child in get_children():
-		if child is Unit:
-			set_unit_position(child, child.grid_position)
-			child.z_as_relative = false
 
 func get_tile(position: Vector2i) -> Tile:
 	return tiles[flatten(position)]
 
 func get_unit(position: Vector2i) -> Unit:
 	return units[flatten(position)]
+
+func init_gui():
+	var tile_size = tiles[0].collision.shape.size.x
+	var x_pos = tile_size * max_x + 2 * tile_size
+	var y_pos = tile_size
+	unit_gui.position = Vector2i(x_pos, y_pos)
+	unit_gui.button_size = Vector2i(tile_size * 2, tile_size * 2)
+
+func init_tiles():
+	for i in tiles.size():
+		set_tile_position(create_tile(), unflatten(i))
+		
+func create_tile() -> Tile:
+	#var tile = Util.load_tree_scene(self, tile_scene)
+	var tile = tile_scene.instantiate()
+	tile.grid = self
+	tile.selected.connect(_on_tile_selected)
+	add_child(tile)
+	return tile
 
 func set_tile_position(tile: Tile, position: Vector2i, terrain_type=Terrain.DEFAULT):
 	if not is_legal_position(position):
@@ -81,12 +80,20 @@ func set_tile_position(tile: Tile, position: Vector2i, terrain_type=Terrain.DEFA
 	tile.position = tile.offset * position + tile.offset/2
 	terrain[flatten(position)] = terrain_type
 
-func update_unit_position(src: Vector2i, dst: Vector2i):
-	var unit = get_unit(src)
-	if unit == null:
-		return
-	delete_unit_position(src)
-	set_unit_position(unit, dst)
+func reset_all_tiles():
+	clear_selected.emit()
+	#for tile in tiles:
+		#tile.reset_state()
+
+func set_tiles_traversable(positions: Array[Vector2i]):
+	for i in positions:
+		get_tile(i).set_traversable(true)
+
+func place_units():
+	for child in get_children():
+		if child is Unit:
+			set_unit_position(child, child.grid_position)
+			child.z_as_relative = false
 
 func set_unit_position(unit: Unit, position: Vector2i):
 	if not is_legal_position(position):
@@ -99,28 +106,18 @@ func delete_unit_position(position: Vector2i):
 	var unit = units[flatten(position)]
 	units[flatten(position)] = null
 
-func create_tile() -> Tile:
-	var tile = Util.load_tree_scene(self, tile_scene)
-	tile.selected.connect(_on_tile_selected)
-	return tile
-
-func init_tiles():
-	for i in tiles.size():
-		set_tile_position(create_tile(), unflatten(i))
+func update_unit_position(src: Vector2i, dst: Vector2i):
+	var unit = get_unit(src)
+	if unit == null:
+		return
+	delete_unit_position(src)
+	set_unit_position(unit, dst)
 
 func flatten(vector: Vector2i) -> int:
 	return (vector.y - 1) * max_x + vector.x - 1
 
 func unflatten(i: int) -> Vector2i:
 	return Vector2i(i % max_x + 1, i / max_x + 1)
-
-func reset_all_tiles():
-	for tile in tiles:
-		tile.reset_state()
-	
-func set_tiles_traversable(positions: Array[Vector2i]):
-	for i in positions:
-		get_tile(i).set_traversable(true)
 
 func get_traversable_positions(position: Vector2i, traversal: Traversal) -> Array[Vector2i]:
 	var traversal_positions: Array[Vector2i]
@@ -130,7 +127,7 @@ func get_traversable_positions(position: Vector2i, traversal: Traversal) -> Arra
 	var absolute_directions = get_absolute_directions(get_unit(position), traversal)
 	var xy_directions = get_xy_directions(absolute_directions)
 	var valid_positions: Array[Vector2i]
-	if unit.traversal.direction == Traversal.Direction.step or unit.traversal.direction == Traversal.Direction.stride:
+	if traversal.direction == Traversal.Direction.step or traversal.direction == Traversal.Direction.stride:
 		valid_positions = get_valid_positions_step(position, xy_directions, traversal)
 	else:
 		valid_positions = get_valid_positions(position, xy_directions, traversal)
