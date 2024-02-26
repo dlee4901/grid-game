@@ -17,7 +17,7 @@ func _process(delta):
 		current_state.update(delta)
 
 func _on_state_transition(old: String, new: String):
-	print("state_transition - ", old, " : ", new)
+	print("state_transition: ", old, " -> ", new)
 	if old != current_state.name:
 		return
 	var new_state = states.get(new)

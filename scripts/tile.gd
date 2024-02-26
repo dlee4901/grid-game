@@ -17,7 +17,6 @@ signal selected(grid_position)
 func _ready():
 	var scale_x = collision.shape.size.x/64
 	var scale_y = collision.shape.size.y/64
-	print(scale_x)
 	sprite.scale = Vector2(scale_x, scale_y)
 	grid.clear_selected.connect(_on_clear_selected)
 

@@ -17,7 +17,7 @@ var units: Array[Unit]
 var terrain: Array[Terrain]
 
 var selected_position: Vector2i
-var traversable_positions: Array[Vector2i]
+var move_positions: Array[Vector2i]
 
 signal clear_selected
 
@@ -119,25 +119,24 @@ func flatten(vector: Vector2i) -> int:
 func unflatten(i: int) -> Vector2i:
 	return Vector2i(i % max_x + 1, i / max_x + 1)
 
-func get_traversable_positions(position: Vector2i, traversal: Traversal) -> Array[Vector2i]:
-	var traversal_positions: Array[Vector2i]
+func get_move_positions(position: Vector2i, move: Move) -> Array[Vector2i]:
+	var move_positions: Array[Vector2i]
 	var unit = get_unit(position)
 	if not is_legal_position(position) or unit == null:
-		return traversal_positions
-	var absolute_directions = get_absolute_directions(get_unit(position), traversal)
+		return move_positions
+	var absolute_directions = get_absolute_directions(get_unit(position), move)
 	var xy_directions = get_xy_directions(absolute_directions)
-	var valid_positions: Array[Vector2i]
-	if traversal.direction == Traversal.Direction.step or traversal.direction == Traversal.Direction.stride:
-		valid_positions = get_valid_positions_step(position, xy_directions, traversal)
+	if move.direction == Traversal.Direction.step or move.direction == Traversal.Direction.stride:
+		move_positions = get_valid_moves_step(position, xy_directions, move)
 	else:
-		valid_positions = get_valid_positions(position, xy_directions, traversal)
-	set_tiles_traversable(valid_positions)
-	return valid_positions
+		move_positions = get_valid_moves(position, xy_directions, move)
+	set_tiles_traversable(move_positions)
+	return move_positions
 
-func get_valid_positions_step(initial_position: Vector2i, xy_directions: Array[Vector2i], traversal: Traversal) -> Array[Vector2i]:
+func get_valid_moves_step(initial_position: Vector2i, xy_directions: Array[Vector2i], move: Move) -> Array[Vector2i]:
 	var unique_positions = {initial_position: null}
 	var valid_positions: Array[Vector2i]
-	var distance = traversal.distance
+	var distance = move.distance
 	if distance == -1:
 		distance = max(max_x, max_y)
 	for i in distance+1:
@@ -150,10 +149,10 @@ func get_valid_positions_step(initial_position: Vector2i, xy_directions: Array[V
 	valid_positions.erase(initial_position)
 	return valid_positions
 
-func get_valid_positions(initial_position: Vector2i, xy_directions: Array[Vector2i], traversal: Traversal) -> Array[Vector2i]:
+func get_valid_moves(initial_position: Vector2i, xy_directions: Array[Vector2i], move: Move) -> Array[Vector2i]:
 	var unique_positions = {}
 	var valid_positions: Array[Vector2i]
-	var distance = traversal.distance
+	var distance = move.distance
 	if distance == -1:
 		distance = max(max_x, max_y)
 	for i in distance:

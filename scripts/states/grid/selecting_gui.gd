@@ -10,9 +10,9 @@ func tile_selected():
 	transition.emit(self.name, "SelectingUnit")
 
 func unit_selected():
-	print("Unitselected")
 	enter()
 
 func traversal_selected(traversal):
-	ref.traversable_positions = ref.get_traversable_positions(ref.selected_position, traversal)
-	transition.emit(self.name, "SelectingTraversal")
+	if traversal is Move:
+		ref.move_positions = ref.get_move_positions(ref.selected_position, traversal)
+		transition.emit(self.name, "SelectingTraversal")
